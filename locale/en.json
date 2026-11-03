@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "SSLManager Certificates",
+    "description": "Inspect, issue, deploy and revoke SSLManager certificates from the agent; every state change asks for approval first."
+  }
+}

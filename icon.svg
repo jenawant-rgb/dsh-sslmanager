@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="SSLManager">
+  <defs>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <path d="M24 3 42 10v13c0 11-7.6 19.4-18 22C13.6 42.4 6 34 6 23V10Z" fill="url(#shield)"/>
+  <rect x="16" y="21" width="16" height="13" rx="2.4" fill="#fff"/>
+  <path d="M19.5 21v-3.5a4.5 4.5 0 0 1 9 0V21" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="24" cy="27" r="1.9" fill="#1d4ed8"/>
+  <rect x="23.1" y="27.6" width="1.8" height="3.6" rx="0.9" fill="#1d4ed8"/>
+</svg>

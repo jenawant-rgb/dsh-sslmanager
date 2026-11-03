@@ -1,0 +1,13 @@
+{
+  "name": "sslmanager",
+  "description": "Inspect SSLManager certificates: inventory, expiry, domains and live TLS state.",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "SSLManager",
+    "shortDescription": "Certificate inventory and expiry from SSLManager",
+    "category": "Infrastructure",
+    "capabilities": ["Certificate inventory", "Expiry triage", "Live TLS probe"],
+    "defaultPrompt": ["Show certificates expiring in 30 days"]
+  }
+}

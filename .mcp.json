@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sslmanager": {
+      "command": "node",
+      "args": ["./mcp/server.mjs"]
+    }
+  }
+}

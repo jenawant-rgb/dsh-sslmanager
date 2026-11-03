@@ -1,0 +1,8 @@
+# SSLManager certificate tools: reads plus approval-gated writes.
+# Installed into a DSH profile as a bundle; the row below is the plugin entry.
+- insert:
+    - id: sslmanager
+      name: '@sslmanager/dsh-sslmanager'
+      config:
+        baseUrl: http://127.0.0.1:8030
+        tokenRef: SSLMGR_TOKEN

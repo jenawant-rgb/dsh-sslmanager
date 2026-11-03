@@ -1,0 +1,36 @@
+{
+  "name": "@sslmanager/dsh-sslmanager",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "SSLManager certificate tools for the DeepSeek Harness: inspect, issue, deploy, revoke — writes gated by approval; PAT auth",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "mcp/server.mjs",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  },
+  "dependencies": {},
+  "bin": {
+    "sslmanager-mcp": "./mcp/server.mjs"
+  }
+}

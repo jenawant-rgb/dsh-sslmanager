@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "SSLManager 证书",
+    "description": "在智能体里查看、申请、部署与吊销 SSLManager 证书；所有写操作都会先请求审批。"
+  }
+}
