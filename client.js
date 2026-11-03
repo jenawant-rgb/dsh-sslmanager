@@ -151,6 +151,8 @@ window.__ModuleLoader__.load({
     const inject = ['slots']
 
     function apply(ctx) {
+      // One line so a missing panel can be diagnosed from the browser console.
+      if (typeof console !== 'undefined') console.info('[sslmanager] dock panel registered')
       ctx.slots.inject('conversation.input.dock', () =>
         ctx.slots.register(
           {
