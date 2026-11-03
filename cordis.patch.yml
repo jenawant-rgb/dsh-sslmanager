@@ -1,8 +1,10 @@
 # SSLManager certificate tools: reads plus approval-gated writes.
 # Installed into a DSH profile as a bundle; the row below is the plugin entry.
+# baseUrl defaults to the hosted service; point it at http://127.0.0.1:8030
+# when running a local server.
 - insert:
     - id: sslmanager
       name: '@sslmanager/dsh-sslmanager'
       config:
-        baseUrl: http://127.0.0.1:8030
+        baseUrl: https://sethttps.com
         tokenRef: SSLMGR_TOKEN

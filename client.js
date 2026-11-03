@@ -3,11 +3,18 @@
 // Hand-written module in the loader's format: no build step, no imports from
 // other Harness packages (only React from the browser module table), so a
 // missing chunk cannot blank the composer dock.
+//
+// When no credential is stored yet, the panel becomes the setup form: the
+// token is posted to the host route, validated against SSLManager and written
+// to the DSH credential store. It is never rendered back.
 window.__ModuleLoader__.load({
   id: '@sslmanager/dsh-sslmanager',
   factory: (require) => {
     const React = require('react')
     const { useEffect, useState } = React
+
+    const cardWidth =
+      'calc(var(--dsh-composer-card-max-width, 780px) - 4 * var(--dsh-composer-dock-inset, 8px))'
 
     const styles = {
       // Match the composer card: the dock is a free-width flex child, so the
@@ -18,7 +25,7 @@ window.__ModuleLoader__.load({
         gap: 8,
         boxSizing: 'border-box',
         width: '100%',
-        maxWidth: 'calc(var(--dsh-composer-card-max-width, 780px) - 4 * var(--dsh-composer-dock-inset, 8px))',
+        maxWidth: cardWidth,
         margin: '0 auto 6px',
         padding: '6px 10px',
         borderRadius: 8,
@@ -40,10 +47,19 @@ window.__ModuleLoader__.load({
         fontSize: 11,
         cursor: 'pointer',
       },
+      primaryButton: {
+        border: '0.5px solid var(--dsw-alias-border-l2)',
+        background: 'var(--dsw-alias-fill-l2)',
+        color: 'var(--dsw-alias-label-primary)',
+        borderRadius: 6,
+        padding: '3px 12px',
+        fontSize: 12,
+        cursor: 'pointer',
+      },
       panel: {
         boxSizing: 'border-box',
         width: '100%',
-        maxWidth: 'calc(var(--dsh-composer-card-max-width, 780px) - 4 * var(--dsh-composer-dock-inset, 8px))',
+        maxWidth: cardWidth,
         margin: '0 auto 8px',
         border: '0.5px solid var(--dsw-alias-border-l1)',
         borderRadius: 8,
@@ -60,6 +76,19 @@ window.__ModuleLoader__.load({
       },
       domain: { color: 'var(--dsw-alias-label-primary)', fontFamily: 'var(--dsw-font-mono)' },
       hint: { color: 'var(--dsw-alias-label-tertiary)', fontSize: 11 },
+      input: {
+        boxSizing: 'border-box',
+        width: '100%',
+        marginTop: 6,
+        padding: '6px 8px',
+        borderRadius: 6,
+        border: '0.5px solid var(--dsw-alias-border-l2)',
+        background: 'var(--dsw-alias-bg-base, #fff)',
+        color: 'var(--dsw-alias-label-primary)',
+        fontFamily: 'var(--dsw-font-mono)',
+        fontSize: 12,
+      },
+      error: { color: 'var(--dsw-alias-state-error-primary)', fontSize: 11, marginTop: 6 },
     }
 
     function severity(days) {
@@ -71,6 +100,10 @@ window.__ModuleLoader__.load({
     function ExpiryPanel() {
       const [state, setState] = useState({ status: 'loading', items: [], days: 45, at: null })
       const [open, setOpen] = useState(false)
+      const [setupOpen, setSetupOpen] = useState(false)
+      const [draft, setDraft] = useState('')
+      const [saving, setSaving] = useState(false)
+      const [saveError, setSaveError] = useState('')
 
       async function load() {
         setState((current) => ({ ...current, status: 'loading' }))
@@ -78,6 +111,11 @@ window.__ModuleLoader__.load({
           const response = await fetch('/api/sslmanager/expiring?days=45', { credentials: 'same-origin' })
           if (!response.ok) throw new Error(`HTTP ${response.status}`)
           const body = await response.json()
+          if (body.configured === false) {
+            setState({ status: 'unconfigured', items: [], days: body.days || 45, at: null })
+            setSetupOpen(true)
+            return
+          }
           setState({ status: 'ready', items: body.items || [], days: body.days || 45, at: body.generatedAt })
         } catch (error) {
           setState({ status: 'failed', items: [], days: 45, at: null, error: String(error.message || error) })
@@ -90,15 +128,107 @@ window.__ModuleLoader__.load({
         return () => clearInterval(timer)
       }, [])
 
+      async function saveToken() {
+        const token = draft.trim()
+        if (!token) return
+        setSaving(true)
+        setSaveError('')
+        try {
+          const response = await fetch('/api/sslmanager/token', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ token }),
+          })
+          const body = await response.json().catch(() => ({}))
+          if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`)
+          setDraft('')
+          setSetupOpen(false)
+          await load()
+        } catch (error) {
+          setSaveError(String(error.message || error))
+        } finally {
+          setSaving(false)
+        }
+      }
+
+      const setup = setupOpen
+        ? React.createElement(
+            'div',
+            { style: styles.panel },
+            React.createElement(
+              'div',
+              { style: styles.hint },
+              '粘贴 SSLManager 访问令牌（控制台「访问令牌」页创建，至少需要 cert:read）。令牌只提交给本机 Harness 并存入凭据库，不会出现在对话里。',
+            ),
+            React.createElement('input', {
+              type: 'password',
+              autoFocus: true,
+              placeholder: 'ssm_…',
+              value: draft,
+              style: styles.input,
+              onChange: (event) => setDraft(event.target.value),
+              onKeyDown: (event) => {
+                if (event.key === 'Enter') saveToken()
+              },
+            }),
+            React.createElement(
+              'div',
+              { style: { display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' } },
+              React.createElement(
+                'button',
+                { style: styles.primaryButton, disabled: saving || !draft.trim(), onClick: saveToken },
+                saving ? '保存中…' : '保存令牌',
+              ),
+              React.createElement('button', { style: styles.button, onClick: () => setSetupOpen(false) }, '取消'),
+              React.createElement('span', { style: styles.hint }, '保存前会先向 SSLManager 验证一次'),
+            ),
+            saveError ? React.createElement('div', { style: styles.error }, saveError) : null,
+          )
+        : null
+
+      if (state.status === 'unconfigured') {
+        return React.createElement(
+          React.Fragment,
+          null,
+          React.createElement(
+            'div',
+            { style: styles.bar },
+            React.createElement('span', {
+              style: { ...styles.dot, background: 'var(--dsw-alias-state-warning-primary, #d48806)' },
+            }),
+            React.createElement('span', { style: styles.title }, 'SSLManager'),
+            React.createElement('span', null, '还没有配置访问令牌'),
+            React.createElement('span', { style: styles.spacer }),
+            React.createElement(
+              'button',
+              { style: styles.button, onClick: () => setSetupOpen((value) => !value) },
+              setupOpen ? '收起' : '填入令牌',
+            ),
+          ),
+          setup,
+        )
+      }
+
       if (state.status === 'failed') {
         return React.createElement(
-          'div',
-          { style: styles.bar },
-          React.createElement('span', { style: { ...styles.dot, background: 'var(--dsw-alias-label-tertiary)' } }),
-          React.createElement('span', { style: styles.title }, 'SSLManager'),
-          React.createElement('span', null, '未配置或不可达'),
-          React.createElement('span', { style: styles.spacer }),
-          React.createElement('button', { style: styles.button, onClick: load }, '重试'),
+          React.Fragment,
+          null,
+          React.createElement(
+            'div',
+            { style: styles.bar },
+            React.createElement('span', { style: { ...styles.dot, background: 'var(--dsw-alias-label-tertiary)' } }),
+            React.createElement('span', { style: styles.title }, 'SSLManager'),
+            React.createElement('span', null, '不可达'),
+            React.createElement('span', { style: styles.spacer }),
+            React.createElement('button', { style: styles.button, onClick: load }, '重试'),
+            React.createElement(
+              'button',
+              { style: styles.button, onClick: () => setSetupOpen((value) => !value) },
+              '设置',
+            ),
+          ),
+          setup,
         )
       }
 
@@ -118,7 +248,10 @@ window.__ModuleLoader__.load({
           'div',
           { style: styles.bar },
           React.createElement('span', {
-            style: { ...styles.dot, background: worst === null ? 'var(--dsw-alias-state-success-primary, #389e0d)' : severity(worst) },
+            style: {
+              ...styles.dot,
+              background: worst === null ? 'var(--dsw-alias-state-success-primary, #389e0d)' : severity(worst),
+            },
           }),
           React.createElement('span', { style: styles.title }, 'SSLManager'),
           React.createElement('span', null, label),
@@ -126,10 +259,16 @@ window.__ModuleLoader__.load({
           React.createElement('span', { style: styles.spacer }),
           React.createElement(
             'button',
+            { style: styles.button, onClick: () => setSetupOpen((value) => !value) },
+            '设置',
+          ),
+          React.createElement(
+            'button',
             { style: styles.button, onClick: () => setOpen((value) => !value) },
             open ? '收起' : '查看',
           ),
         ),
+        setup,
         open
           ? React.createElement(
               'div',

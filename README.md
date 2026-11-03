@@ -64,10 +64,15 @@ you ▸ renew api.example.com and ship it to the sg node
 ### DeepSeek Harness (native plugin)
 
 ```bash
+# from the repository
+dsh plugin --profile <name> add github:jenawant-rgb/dsh-sslmanager
+# or from a local checkout
 dsh plugin --profile <name> add /path/to/dsh-sslmanager
 # then select the bundle in the profile manifest:
 #   dsh.profile.bundles += "@sslmanager/dsh-sslmanager"
 ```
+
+The plugin panel accepts the same `github:` spec.
 
 The row config lives in [`cordis.patch.yml`](cordis.patch.yml):
 
@@ -105,14 +110,14 @@ export SSLMGR_TOKEN=<your token>
 
 ### Getting a token
 
-Create a scoped personal access token in the SSLManager console, or mint one from
-the API:
+Create a scoped personal access token on the console's **访问令牌** (`/token`)
+page, or mint one from the API. The login endpoint is OAuth2 password form
+encoded, not JSON:
 
 ```bash
 # 1. log in once to get a short-lived token
 LOGIN=$(curl -s -X POST https://sethttps.com/api/user/token \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"you@example.com","password":"…"}' | jq -r .access_token)
+  -d 'username=you@example.com' -d 'password=…' | jq -r .access_token)
 
 # 2. create a scoped token for the agent
 curl -s -X POST https://sethttps.com/api/token/ \
@@ -133,6 +138,24 @@ Resolution order, first hit wins:
 4. username / password login against `/api/user/token` (read from `SSLMGR_USERNAME` / `SSLMGR_PASSWORD`)
 
 A 401 invalidates the cached token and retries once.
+
+### Entering the token
+
+The dock panel above the composer is also the setup form: click **设置 → 填入令牌**
+(or it opens by itself when no credential is stored), paste the `ssm_…` value and
+save. The browser posts it to the Harness host, which validates it against
+SSLManager and writes it to the credential store under `SSLMGR_TOKEN`; the value
+is never echoed back or added to the conversation.
+
+Editing `~/.dsh/.credentials.yaml` by hand still works:
+
+```yaml
+refs:
+  SSLMGR_TOKEN: ssm_…
+```
+
+The panel only appears after a restart, because Web Client modules are composed
+when the Harness boots. The tools are available immediately.
 
 ## Tools
 
