@@ -4,7 +4,8 @@ Certificate tools for the DeepSeek Harness (native plugin) and for any MCP
 client such as Codex. One implementation, two entry points:
 
 ```
-index.js            native DSH plugin — registers 10 tools on ctx.tools
+index.js            native DSH plugin — registers 11 tools on ctx.tools
+client.js           Web Client dock panel: certificates expiring soon
 mcp/server.mjs      stdio MCP server wrapping the same tool set
 cordis.patch.yml    DSH bundle patch (the plugin row + config)
 .codex-plugin/      Codex plugin manifest (skills + .mcp.json)
@@ -36,6 +37,18 @@ State-changing:
 
 No tool returns `key_content`/`cert_content` or remote credentials; the
 projections in `toCertificate()` / `ssl_remote_list` drop them defensively.
+
+## Web Client panel
+
+`client.js` registers into `conversation.input.dock`: a compact strip above the
+composer that shows how many certificates expire within 45 days, expanding into
+a list with per-certificate days left and deployment state. It refreshes every
+10 minutes.
+
+Data comes from an exact `GET /api/sslmanager/expiring` route registered by the
+host plugin. The handler calls `connection.admit(request)` first, so the
+endpoint uses the same browser-cookie authentication as the rest of the API
+bridge and is never publicly readable.
 
 ## Approval model
 
@@ -115,7 +128,8 @@ node dev/mcp-test.mjs                    # JSON-RPC handshake, read + confirm-ga
 
 ## Not done yet (next steps)
 
-- Token management UI in the console (the API exists; curl/Settings today).
+- The console page for tokens lives in the SSLManager front-end
+  (`/token`), not in this repository; this plugin only consumes the tokens.
 - Audit trail of who called what, independent of the Harness session log.
 - DSH client panel: expiring certificates by severity.
 - Scoped API tokens in SSLManager instead of username/password login.
