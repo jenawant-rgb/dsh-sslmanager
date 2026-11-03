@@ -10,11 +10,16 @@ window.__ModuleLoader__.load({
     const { useEffect, useState } = React
 
     const styles = {
+      // Match the composer card: the dock is a free-width flex child, so the
+      // width has to come from the same variables the input card uses.
       bar: {
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        margin: '0 12px 6px',
+        boxSizing: 'border-box',
+        width: '100%',
+        maxWidth: 'calc(var(--dsh-composer-card-max-width, 780px) - 4 * var(--dsh-composer-dock-inset, 8px))',
+        margin: '0 auto 6px',
         padding: '6px 10px',
         borderRadius: 8,
         border: '0.5px solid var(--dsw-alias-border-l1)',
@@ -36,7 +41,10 @@ window.__ModuleLoader__.load({
         cursor: 'pointer',
       },
       panel: {
-        margin: '0 12px 8px',
+        boxSizing: 'border-box',
+        width: '100%',
+        maxWidth: 'calc(var(--dsh-composer-card-max-width, 780px) - 4 * var(--dsh-composer-dock-inset, 8px))',
+        margin: '0 auto 8px',
         border: '0.5px solid var(--dsw-alias-border-l1)',
         borderRadius: 8,
         background: 'var(--dsw-alias-fill-l2)',
