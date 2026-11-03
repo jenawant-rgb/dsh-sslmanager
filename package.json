@@ -32,5 +32,8 @@
   "dependencies": {},
   "bin": {
     "sslmanager-mcp": "./mcp/server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
