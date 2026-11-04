@@ -13,9 +13,9 @@
   },
   "files": [
     "index.js",
+    "core.js",
     "client.js",
     "cordis.patch.yml",
-    "mcp/server.mjs",
     "locale/*.json",
     "icon.svg",
     "README.md"
@@ -30,9 +30,6 @@
     }
   },
   "dependencies": {},
-  "bin": {
-    "sslmanager-mcp": "./mcp/server.mjs"
-  },
   "engines": {
     "node": ">=18"
   }

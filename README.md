@@ -9,19 +9,18 @@ over DNS-01, deployed to your own servers.
 
 [![Website](https://img.shields.io/badge/website-sethttps.com-22d3ee.svg)](https://sethttps.com)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-plugin-8b5cf6.svg)](https://sethttps.com/guide.html)
-[![MCP](https://img.shields.io/badge/MCP-stdio-34d399.svg)](https://modelcontextprotocol.io)
 [![License](https://img.shields.io/badge/license-MIT-3b82f6.svg)](LICENSE)
-
-One implementation, two entry points:
 
 ```
 index.js            native DSH plugin — registers 11 tools on ctx.tools
 client.js           Web Client dock panel: certificates expiring soon
-mcp/server.mjs      stdio MCP server wrapping the same tool set
 cordis.patch.yml    DSH bundle patch (the plugin row + config)
-.codex-plugin/      Codex plugin manifest (skills + .mcp.json)
 dev/                mock SSLManager API + harnesses, no network needed
 ```
+
+Using Codex? The plugin for it lives in
+[codex-sslmanager](https://github.com/jenawant-rgb/codex-sslmanager); this
+repository is the DSH plugin only.
 
 ## Why this exists
 
@@ -85,19 +84,14 @@ The row config lives in [`cordis.patch.yml`](cordis.patch.yml):
         tokenRef: SSLMGR_TOKEN
 ```
 
-### Any MCP client (Codex, Claude Code, …)
+### Codex and other MCP clients
+
+The MCP server lives in the Codex plugin repository so the two packages share
+nothing: <https://github.com/jenawant-rgb/codex-sslmanager>.
 
 ```bash
-cp -R dsh-sslmanager ~/codex-plugins/sslmanager
-# ~/.codex/config.toml: [features] plugins = true
-```
-
-[`.mcp.json`](.mcp.json) launches `node ./mcp/server.mjs`. Export the
-configuration in the environment the client runs in:
-
-```bash
-export SSLMGR_BASE_URL=https://sethttps.com
-export SSLMGR_TOKEN=<your token>
+codex plugin marketplace add jenawant-rgb/codex-sslmanager
+codex plugin add sslmanager@sslmanager
 ```
 
 ## Configuration
